@@ -1,0 +1,22 @@
+services:
+  mongo_db:
+    image: mongo:8.0-noble
+    container_name: ${CONTAINER_NAME}
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - db_mongo:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${DB_NAME}
+    networks:
+      - mongo-server
+    tty: true
+
+volumes:
+    db_mongo:
+
+networks:
+    mongo-server:
+        driver: bridge
