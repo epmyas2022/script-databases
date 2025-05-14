@@ -1,16 +1,16 @@
 services:
   mysql_db:
     image: mysql:8.0.42
-    container_name: ${MYSQL_CONTAINER_NAME}
+    container_name: ${CONTAINER_NAME}
     ports:
-      - "${MYSQL_PORT}:${MYSQL_PORT}"
+      - "${DB_PORT}:${DB_PORT}"
     volumes:
       - db_mysql:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
     networks:
       - mysql-server
     tty: true
