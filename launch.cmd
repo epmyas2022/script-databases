@@ -16,6 +16,57 @@ fi
 # COMPATIBILITY WITH LINUX
 #---------------------------------------------------
 
+load_sql(){
+    local container_name=$1
+    local driver=$2
+    local db_name=$3
+    local user=$4
+    local password=$5
+    local file_sql=$6
+
+    if [ "$driver" == "postgres" ]; then
+        echo -e "\033[38;5;10m"
+        echo "Cargando archivo SQL en PostgreSQL..."
+        echo -e "\033[0m"
+        cat $file_sql | docker exec -i $container_name psql -U $user -d $db_name
+    elif [ "$driver" == "mysql" ]; then
+        echo -e "\033[38;5;10m"
+        echo "Cargando archivo SQL en MySQL..."
+        echo -e "\033[0m"
+        cat $file_sql | docker exec -i $container_name mysql -u $user -p$password $db_name
+
+    elif [ "$driver" == "mariadb" ]; then
+         echo -e "\033[38;5;10m"
+         echo "Cargando archivo SQL en MariaDB..."
+         cat $file_sql | docker exec -i $container_name mysql -u $user -p$password $db_name
+
+    else 
+        echo -e "\033[38;5;9m"
+        echo "[x] Driver no soportado."
+        echo -e "\033[0m"
+        exit 1
+    fi
+}
+
+start_load_sql(){
+
+    echo -e "\033[38;5;155m"
+    read -p "¿Quieres cargar un archivo SQL? (y/n): " load_sql_option
+
+    if [ "$load_sql_option" == "y" ]; then
+        echo -e "\033[38;5;10m"
+        read -p "Introduce la ruta del archivo SQL: " file_sql
+
+        if [ ! -f "$file_sql" ]; then
+            echo -e "\033[38;5;9m"
+            echo "[x] El archivo SQL no existe."
+            echo -e "\033[0m"
+            exit 1
+        fi
+
+        load_sql $CONTAINER_NAME $DB_DRIVER $DB_NAME $DB_USER $DB_PASSWORD $file_sql
+    fi
+}
 
 up(){
    local file=$1
@@ -64,7 +115,7 @@ up(){
         export DB_PORT=$default_port
    fi
 
-   echo -e "\033[38;5;10m"
+   echo -e "\033[38;5;155m"
    read -p "¿Quieres definir un nombre de base de datos? (y/n): " define_db
 
    #database
@@ -153,9 +204,14 @@ echo -e "\033[0m"
 
 if [ "$option" == "1" ]; then
     echo -e "\033[38;5;10m"
+
     echo -e "Iniciando PostgreSQL... \n"
 
+    export DB_DRIVER="postgres"
+
     up "sources/postgres-compose.yml" 5432
+
+    start_load_sql
 
     echo -e "\033[0m"
 
@@ -164,7 +220,11 @@ elif [ "$option" == "2" ]; then
 
     echo - e "Iniciando MySQL... \n"
 
+    export DB_DRIVER="mysql"
+
     up "sources/mysql-compose.yml" 3306
+
+    start_load_sql
 
     echo -e "\033[0m"
 
@@ -191,7 +251,11 @@ elif [ "$option" == "5" ]; then
 
     echo -e "Iniciando MariaDB... \n"
 
+    export DB_DRIVER="mariadb"
+
     up "sources/mariadb-compose.yml" 3306
+
+    start_load_sql
  
     echo -e "\033[0m"
     
