@@ -6,8 +6,8 @@ if [ "$(uname -s)" != "Linux" ]; then
 #---------------------------------------------------
 
     @echo off
-    echo Ejecutando en Windows...
-    echo %USERNAME%
+    echo Actualemente no es compatible con Windows pero se esta trabajando en ello.
+
     exit /B
 fi
 
@@ -15,6 +15,104 @@ fi
 #---------------------------------------------------
 # COMPATIBILITY WITH LINUX
 #---------------------------------------------------
+
+
+up(){
+   local file=$1
+   local default_port=$2
+
+   echo -e "\033[38;5;155m"
+   read -p "¿Cual es el nombre del contenedor? " container_name
+
+   if( [ -z "$container_name" ] ); then
+      echo -e "\033[38;5;9m"
+      echo "[x] El nombre del contenedor no puede estar vacío."
+      echo -e "\033[0m"
+      exit 1
+   fi
+
+   export CONTAINER_NAME=$container_name
+
+   echo -e "\033[38;5;155m"
+   read -p "¿Quieres definir un usuario y contraseña? (y/n): " define_user
+
+   #user and password
+
+   if [ "$define_user" == "y" ]; then
+        echo -e "\033[38;5;10m"
+         read -p "Introduce el nombre de usuario: " username
+         read -p "Introduce la contraseña: " password
+    
+         export DB_USER=$username
+         export DB_PASSWORD=$password
+
+    else
+         export DB_USER=postgres
+         export DB_PASSWORD=postgres
+    fi
+
+   echo -e "\033[38;5;155m"
+   read -p "¿Quieres definir un puerto? (y/n): " define_port
+
+  #port
+
+   if [ "$define_port" == "y" ]; then
+        echo -e "\033[38;5;220m"
+        read -p "Introduce el puerto: " port
+        export DB_PORT=$port
+   else
+        export DB_PORT=$default_port
+   fi
+
+   echo -e "\033[38;5;10m"
+   read -p "¿Quieres definir un nombre de base de datos? (y/n): " define_db
+
+   #database
+
+    if [ "$define_db" == "y" ]; then
+        echo -e "\033[38;5;220m"
+        read -p "Introduce el nombre de la base de datos: " db_name
+        export DB_NAME=$db_name
+    else
+        export DB_NAME=postgres
+    fi
+ 
+  echo -e "\033[38;5;84m \n"
+  echo -e "Levantando contenedor..."
+  echo -e "\033[0m"
+
+  docker-compose -f "$file" up -d
+
+  if [ $? -ne 0 ]; then
+      echo -e "\033[38;5;9m"
+      echo "[x] Error al levantar el contenedor."
+      echo -e "\033[0m"
+      exit 1
+   fi
+
+   show_info_service "127.0.0.1" "$DB_PORT" "$DB_USER" "$DB_PASSWORD" "$DB_NAME"  
+}
+
+
+show_info_service(){
+    local host=$1
+    local port=$2
+    local user=$3
+    local password=$4
+    local db_name=$5
+
+    echo -e "\033[38;5;222m"
+    echo "----------------------------------------------------------"
+    echo "| Información de conexión al servicio:"
+    echo "| - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+    echo "| Host: $host"
+    echo "| Puerto: $port"
+    echo "| Usuario: $user"
+    echo "| Contraseña: $password"
+    echo "| Base de datos: $db_name"
+    echo "----------------------------------------------------------"
+    echo -e "\033[0m"
+}
 
 echo -e "\033[38;5;6m$(cat banner.txt)\033[0m"
 
@@ -35,7 +133,7 @@ then
 fi
 
 echo -e "\033[38;5;228m"
-echo "Selecciona una opción:"
+echo -e "Selecciona una opción: \n"
 
 
 echo -e "\033[38;5;26m1. PostgreSQL"
@@ -55,33 +153,46 @@ echo -e "\033[0m"
 
 if [ "$option" == "1" ]; then
     echo -e "\033[38;5;10m"
-    echo "Iniciando PostgreSQL..."
+    echo -e "Iniciando PostgreSQL... \n"
 
-    read -p "¿Quieres definir un usuario y contraseña para PostgreSQL? (y/n): " define_user
-
-    if [ "$define_user" == "y" ]; then
-
-    fi
+    up "sources/postgres-compose.yml" 5432
 
     echo -e "\033[0m"
 
 elif [ "$option" == "2" ]; then
     echo -e "\033[38;5;10m"
-    echo "Iniciando MySQL..."
+
+    echo - e "Iniciando MySQL... \n"
+
+    up "sources/mysql-compose.yml" 3306
+
     echo -e "\033[0m"
 
 elif [ "$option" == "3" ]; then
     echo -e "\033[38;5;10m"
-    echo "Iniciando MongoDB..."
+
+    echo -e "Iniciando MongoDB... \n"
+
+    up "sources/mongo-compose.yml" 27017
+
     echo -e "\033[0m"
 
 elif [ "$option" == "4" ]; then
     echo -e "\033[38;5;10m"
-    echo "Iniciando Redis..."
+
+    echo -e "Iniciando Redis... \n"
+
+    up "sources/redis-compose.yml" 6379
+
     echo -e "\033[0m"
+
 elif [ "$option" == "5" ]; then
     echo -e "\033[38;5;10m"
-    echo "Iniciando MariaDB..."
+
+    echo -e "Iniciando MariaDB... \n"
+
+    up "sources/mariadb-compose.yml" 3306
+ 
     echo -e "\033[0m"
     
 else
