@@ -1,0 +1,11 @@
+FROM redis:8.0.1-alpine
+
+RUN apk add --no-cache gettext
+
+COPY redis.conf.template /usr/local/etc/redis/redis.conf.template
+
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]

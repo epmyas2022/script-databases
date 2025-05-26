@@ -1,0 +1,22 @@
+services:
+  redis_db:
+    build:
+      context: .
+      dockerfile: Dockerfile-Redis
+    container_name: ${CONTAINER_NAME}
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - db_redis:/data
+    environment:
+      - REDIS_PASSWORD=${DB_PASSWORD}
+    networks:
+      - redis-server
+    tty: true
+
+volumes:
+    db_redis:
+
+networks:
+    redis-server:
+        external: true
